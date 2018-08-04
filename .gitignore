@@ -1,0 +1,23 @@
+# Binaries
+*.7z
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+*.war
+*.ear
+*.class
+
+# Maven
+target/
+
+# IntelliJ project files
+*.iml
+*.iws
+*.ipr
+.idea/
+
+release.properties
+pom.xml.tag
