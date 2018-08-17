@@ -9,7 +9,7 @@ import java.util.List;
 import static db.Database.createEntityManager;
 
 @Singleton
-public class AccountDao {
+public class AccountDao extends BaseDao{
 
     public Account accountById(Long id) {
         return createEntityManager().find(Account.class, id);
@@ -23,20 +23,4 @@ public class AccountDao {
         return accounts;
     }
 
-    public void save(Account account) {
-        EntityManager em = createEntityManager();
-        em.getTransaction().begin();
-        em.merge(account);
-        em.getTransaction().commit();
-        em.close();
-    }
-
-    public Account create(Account account) {
-        EntityManager em = createEntityManager();
-        em.getTransaction().begin();
-        em.persist(account);
-        em.getTransaction().commit();
-        em.close();
-        return account;
-    }
 }
