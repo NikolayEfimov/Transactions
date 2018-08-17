@@ -15,6 +15,15 @@ public class Account {
     public Double balance;
     public String name;
 
+
+    public Account(Double balance, String name) {
+        this.balance = balance;
+        this.name = name;
+    }
+
+    public Account() {
+    }
+
     @Override
     public String toString() {
         return "Account{" +

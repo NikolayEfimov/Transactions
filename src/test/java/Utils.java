@@ -7,7 +7,7 @@ import java.net.URL;
 
 class Utils {
 
-    static int PORT = 8080;
+    public static int PORT = 8080;
 
     static UrlResponse doMethod(String requestMethod, String path, String body) {
         UrlResponse response = new UrlResponse();

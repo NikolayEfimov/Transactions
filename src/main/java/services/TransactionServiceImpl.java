@@ -12,12 +12,15 @@ import java.util.List;
 @Singleton
 public class TransactionServiceImpl implements TransactionService {
 
-    @Inject private AccountService accountService;
-    @Inject private TransactionDao transactionDao;
-    @Inject private AccountDao accountDao;
+    @Inject
+    private AccountService accountService;
+    @Inject
+    private TransactionDao transactionDao;
+    @Inject
+    private AccountDao accountDao;
 
     @Override
-    public boolean transfer(Transaction transaction) {
+    public synchronized boolean transfer(Transaction transaction) {
         try {
             transactionDao.create(transaction);
 
@@ -27,13 +30,11 @@ public class TransactionServiceImpl implements TransactionService {
             from.balance -= transaction.amount;
             to.balance += transaction.amount;
 
-            accountDao.save(from);
-            accountDao.save(to);
-
+            accountDao.update(from);
+            accountDao.update(to);
             transaction.state = "DONE";
             transactionDao.update(transaction);
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             System.out.println(ex.getMessage());
         }
         return true;
