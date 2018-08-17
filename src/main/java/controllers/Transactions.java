@@ -13,24 +13,22 @@ public class Transactions {
 
     @Inject private TransactionService transactionService;
 
-    public Response transfer(Request rq, Response rs) {
+    public String transfer(Request rq, Response rs) {
         Gson gson = new Gson();
         Transaction transaction = gson.fromJson(rq.body(), Transaction.class);
         transaction.state = "PENDING";
         transactionService.transfer(transaction);
-        return rs;
+        return new Gson().toJson(transaction);
     }
 
-    public Object transactionById(Request rq, Response rs) {
+    public String transactionById(Request rq, Response rs) {
         Long id = Long.valueOf(rq.params("id"));
         Transaction transaction = transactionService.transactionById(id);
-        Gson gson = new Gson();
-        return gson.toJson(transaction);
+        return new Gson().toJson(transaction);
     }
 
-    public Object transactions(Request rq, Response rs) {
+    public String transactions(Request rq, Response rs) {
         List<Transaction> transactions = transactionService.transactions();
-        Gson gson = new Gson();
-        return gson.toJson(transactions);
+        return new Gson().toJson(transactions);
     }
 }

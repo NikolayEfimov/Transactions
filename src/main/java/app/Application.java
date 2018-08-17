@@ -28,8 +28,7 @@ public class Application {
 
         get("/transactions", transactions::transactions);
         post("/transactions", transactions::transfer);
-        get("/transaction/:id", transactions::transactionById);
-
+        get("/transactions/:id", transactions::transactionById);
 
     }
 

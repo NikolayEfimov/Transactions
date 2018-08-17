@@ -2,28 +2,21 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import model.Account;
+import model.Transaction;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import spark.Spark;
-import spark.utils.IOUtils;
 
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApplicationTest {
 
-    private static int PORT = 8080;
-
     @BeforeClass
     public static void setup() {
-        String[] args = {String.valueOf(PORT)};
+        String[] args = {String.valueOf(Utils.PORT)};
         app.Application.main(args);
         Spark.awaitInitialization();
     }
@@ -35,11 +28,25 @@ public class ApplicationTest {
 
     @Test
     public void createAccount() {
-    UrlResponse response = createAccountViaPOST();
+        UrlResponse response = createAccountViaPOST();
+        assertThat(response).isNotNull();
+        assertThat(response.body).isNotNull();
+        assertThat(response.status).isEqualTo(200);
+    }
 
-    assertThat(response).isNotNull();
-    assertThat(response.body).isNotNull();
-    assertThat(response.status).isEqualTo(200);
+    @Test
+    public void canGetAccountById() {
+        createAccountViaPOST();
+
+        UrlResponse response = Utils.doMethod("GET", "/accounts/1", null);
+
+        String body = response.body.trim();
+        assertThat(response).isNotNull();
+        assertThat(response.status).isEqualTo(200);
+        assertThat(body).isNotNull();
+
+        Account account = new Gson().fromJson(response.body.trim(), Account.class);
+        assertThat(account).isEqualTo(account);
     }
 
     @Test
@@ -49,7 +56,7 @@ public class ApplicationTest {
         Account account2 = gson.fromJson(createAccountViaPOST().body.trim(), Account.class);
         Account account3 = gson.fromJson(createAccountViaPOST().body.trim(), Account.class);
 
-        UrlResponse response = doMethod("GET", "/accounts", null);
+        UrlResponse response = Utils.doMethod("GET", "/accounts", null);
 
         assertThat(response).isNotNull();
         TypeToken<List<Account>> typeToken = new TypeToken<>() {};
@@ -61,58 +68,51 @@ public class ApplicationTest {
         assertThat(response.status).isEqualTo(200);
     }
 
+
+
     @Test
-    public void canGetAccountById() {
-        Gson gson = new Gson();
-        createAccountViaPOST();
-        createAccountViaPOST();
-        createAccountViaPOST();
-
-        UrlResponse response = doMethod("GET", "/accounts/1", null);
-
+    public void createTransaction() {
+        UrlResponse response = createAccountViaPOST();
         assertThat(response).isNotNull();
-        Account account = gson.fromJson(response.body.trim(), Account.class);
-
-        String body = response.body.trim();
-        assertThat(body).isNotNull();
-        assertThat(account.id).isEqualTo(1);
+        assertThat(response.body).isNotNull();
         assertThat(response.status).isEqualTo(200);
     }
 
-    private static UrlResponse doMethod(String requestMethod, String path, String body) {
-        UrlResponse response = new UrlResponse();
+    @Test
+    public void canGetTransactionById() {
+        createTransactionViaPOST();
 
-        try {
-            getResponse(requestMethod, path, body, response);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        UrlResponse response = Utils.doMethod("GET", "/transactions/1", null);
 
-        return response;
+        String body = response.body.trim();
+        assertThat(response).isNotNull();
+        assertThat(response.status).isEqualTo(200);
+        assertThat(body).isNotNull();
+
+        Transaction transaction = new Gson().fromJson(response.body.trim(), Transaction.class);
+        assertThat(transaction).isEqualTo(transaction);
     }
 
-    private static void getResponse(String requestMethod, String path, String body, UrlResponse response)
-            throws IOException {
-        URL url = new URL("http://localhost:" + PORT + path);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod(requestMethod);
-        if (body != null) {
-            connection.setDoOutput(true);
-            OutputStreamWriter wr = new OutputStreamWriter(connection.getOutputStream());
-            wr.write(body);
-            wr.flush();
-        }
+    @Test
+    public void canGetTransactions() {
+        createAccountViaPOST();
+        createAccountViaPOST();
 
-        connection.connect();
-        response.body = IOUtils.toString(connection.getInputStream());
-        response.status = connection.getResponseCode();
-        response.headers = connection.getHeaderFields();
-    }
+        Gson gson = new Gson();
+        Transaction tx1 = gson.fromJson(createTransactionViaPOST().body.trim(), Transaction.class);
+        Transaction tx2 = gson.fromJson(createTransactionViaPOST().body.trim(), Transaction.class);
+        Transaction tx3 = gson.fromJson(createTransactionViaPOST().body.trim(), Transaction.class);
 
-    private static class UrlResponse {
-        public Map<String, List<String>> headers;
-        private String body;
-        private int status;
+        UrlResponse response = Utils.doMethod("GET", "/transactions", null);
+
+        assertThat(response).isNotNull();
+        TypeToken<List<Transaction>> typeToken = new TypeToken<>(){};
+        List<Transaction> transactions = gson.fromJson(response.body.trim(), typeToken.getType());
+
+        String body = response.body.trim();
+        assertThat(body).isNotNull();
+        assertThat(transactions).contains(tx1, tx2, tx3);
+        assertThat(response.status).isEqualTo(200);
     }
 
     private UrlResponse createTransactionViaPOST() {
@@ -120,14 +120,13 @@ public class ApplicationTest {
         jsonObject.addProperty("fromAccountId", "1");
         jsonObject.addProperty("toAccountId", "2");
         jsonObject.addProperty("amount", "100");
-        return doMethod("POST", "/transactions", jsonObject.toString());
+        return Utils.doMethod("POST", "/transactions", jsonObject.toString());
     }
 
     private UrlResponse createAccountViaPOST() {
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("balance", "100");
         jsonObject.addProperty("name", "Sam");
-        return doMethod("POST", "/accounts", jsonObject.toString());
+        return Utils.doMethod("POST", "/accounts", jsonObject.toString());
     }
-
 }
