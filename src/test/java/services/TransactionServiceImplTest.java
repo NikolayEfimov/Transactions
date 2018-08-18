@@ -10,7 +10,6 @@ import org.junit.Test;
 import util.MultithreadedStressTester;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 
 import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
@@ -32,31 +31,50 @@ public class TransactionServiceImplTest {
 
     @Test
     public void totalBalanceShouldNotChange() throws InterruptedException {
-        BigDecimal balanceBefore = ZERO;
         int nAccounts = 100000;
-        int nThreads = 100;
+        int nTransfers = 100;
 
-        long start = System.currentTimeMillis();
+        createNAccounts(nAccounts);
+        BigDecimal balanceBefore = totalBalanceOfAllAccounts();
 
-        for (int i = 0; i < nAccounts; i++) {
-            Account account = accountService.create(new Account(ONE, "acc" + i));
-            balanceBefore = balanceBefore.add(account.balance);
-        }
+        makeRandomTransactionsBetweenAccounts(nAccounts, nTransfers);
 
-        test(nAccounts, new MultithreadedStressTester(nThreads));
+        BigDecimal balanceAfter = totalBalanceOfAllAccounts();
 
-        BigDecimal balanceAfter = accountService.accounts()
-                .stream()
-                .map(acc -> acc.balance)
-                .reduce(ZERO, BigDecimal::add);
-
-        long finish = System.currentTimeMillis();
-        System.out.println("time: " + (finish - start));
         assertThat(balanceAfter.compareTo(balanceBefore)).isEqualTo(0);
     }
 
-    private void test(int nAccounts, MultithreadedStressTester stressTester) throws InterruptedException {
+    @Test
+    public void totalBalanceAfterBiDirectionalTransfersBetweenShouldNotChange() throws InterruptedException {
+        int nAccounts = 2;
+        int nTransfers = 100;
 
+        createNAccounts(nAccounts);
+        BigDecimal balanceBefore = totalBalanceOfAllAccounts();
+
+        makeRandomTransactionsBetweenTwoAccounts(1, 2, ONE, nTransfers);
+
+        BigDecimal balanceAfter = totalBalanceOfAllAccounts();
+
+        assertThat(balanceAfter.compareTo(balanceBefore)).isEqualTo(0);
+    }
+
+    private void createNAccounts(int nAccounts) {
+        for (int i = 0; i < nAccounts; i++) {
+            accountService.create(new Account(ONE, "account_" + i));
+        }
+    }
+
+    private BigDecimal totalBalanceOfAllAccounts() {
+        return accountService.accounts()
+                .stream()
+                .map(acc -> acc.balance)
+                .reduce(ZERO, BigDecimal::add);
+    }
+
+    private void makeRandomTransactionsBetweenAccounts(int nAccounts, int nTransactions) throws InterruptedException {
+
+        MultithreadedStressTester stressTester = new MultithreadedStressTester(nTransactions);
         stressTester.stress(() -> {
             long randomFromId = current().nextLong(1, nAccounts + 1);
             long randomToId = current().nextLong(1, nAccounts + 1);
@@ -68,6 +86,33 @@ public class TransactionServiceImplTest {
             tx.fromAccountId = randomFromId;
             tx.toAccountId = toId;
             tx.amount = ONE;
+
+            try {
+                transactionService.transfer(tx);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+        stressTester.shutdown();
+    }
+
+    private void makeRandomTransactionsBetweenTwoAccounts(long first, long second, BigDecimal amount, int nTransactions) throws InterruptedException {
+
+        MultithreadedStressTester stressTester = new MultithreadedStressTester(nTransactions);
+
+        stressTester.stress(() -> {
+            Transaction tx = new Transaction();
+
+            if (current().nextBoolean()) {
+                tx.fromAccountId = first;
+                tx.toAccountId = second;
+            }
+            else {
+                tx.fromAccountId = second;
+                tx.toAccountId = first;
+            }
+
+            tx.amount = amount;
 
             try {
                 transactionService.transfer(tx);
