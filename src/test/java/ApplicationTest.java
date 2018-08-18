@@ -70,17 +70,24 @@ public class ApplicationTest {
 
     @Test
     public void createTransaction() {
-        UrlResponse response = createAccountViaPOST();
+        UrlResponse response = createTransactionViaPOST();
         assertThat(response).isNotNull();
         assertThat(response.body).isNotNull();
         assertThat(response.status).isEqualTo(200);
+
+        Transaction tx = new Gson().fromJson(response.body.trim(), Transaction.class);
+        assertThat(tx.id).isNotNull();
+
     }
 
     @Test
     public void canGetTransactionById() {
-        createTransactionViaPOST();
+        createAccountViaPOST();
+        createAccountViaPOST();
 
-        UrlResponse response = Utils.doMethod("GET", "/transactions/1", null);
+        Transaction tx = new Gson().fromJson(createTransactionViaPOST().body.trim(), Transaction.class);
+
+        UrlResponse response = Utils.doMethod("GET", "/transactions/" + tx.id, null);
 
         String body = response.body.trim();
         assertThat(response).isNotNull();
@@ -109,8 +116,8 @@ public class ApplicationTest {
 
         String body = response.body.trim();
         assertThat(body).isNotNull();
-        assertThat(transactions).contains(tx1, tx2, tx3);
         assertThat(response.status).isEqualTo(200);
+        assertThat(transactions).contains(tx1, tx2, tx3);
     }
 
     private UrlResponse createTransactionViaPOST() {
