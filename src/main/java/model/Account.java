@@ -5,6 +5,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import java.math.BigDecimal;
 
 @Entity
 public class Account {
@@ -12,11 +13,11 @@ public class Account {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     public Long id;
-    public Double balance;
+    public BigDecimal balance;
     public String name;
 
 
-    public Account(Double balance, String name) {
+    public Account(BigDecimal balance, String name) {
         this.balance = balance;
         this.name = name;
     }

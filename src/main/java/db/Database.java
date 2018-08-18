@@ -6,6 +6,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.Query;
+import java.math.BigDecimal;
 
 public class Database {
 
@@ -31,11 +32,11 @@ public class Database {
         System.out.println(query.getResultList().size());
 
         Account account = new Account();
-        account.balance = 100.;
+        account.balance = new BigDecimal(100);
         account.name = "Nikolai";
 
         Account account2 = new Account();
-        account2.balance = 200.;
+        account2.balance = new BigDecimal(200);;
         account2.name = "Pavel";
 
         em.persist(account);

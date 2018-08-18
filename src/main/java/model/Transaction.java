@@ -4,6 +4,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 @Entity
 public class Transaction implements Serializable {
@@ -13,7 +14,7 @@ public class Transaction implements Serializable {
     public Long id;
     public Long fromAccountId;
     public Long toAccountId;
-    public Double amount;
+    public BigDecimal amount;
     public String state;
 
 

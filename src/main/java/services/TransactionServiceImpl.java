@@ -27,8 +27,8 @@ public class TransactionServiceImpl implements TransactionService {
             Account from = accountService.accountById(transaction.fromAccountId);
             Account to = accountService.accountById(transaction.toAccountId);
 
-            from.balance -= transaction.amount;
-            to.balance += transaction.amount;
+            from.balance =  from.balance.subtract(transaction.amount);
+            to.balance  = to.balance.add(transaction.amount);
 
             accountDao.update(from);
             accountDao.update(to);

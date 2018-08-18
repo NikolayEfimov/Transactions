@@ -9,6 +9,11 @@ import org.junit.Before;
 import org.junit.Test;
 import util.MultithreadedStressTester;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
+import static java.math.BigDecimal.ONE;
+import static java.math.BigDecimal.ZERO;
 import static java.util.concurrent.ThreadLocalRandom.current;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -27,28 +32,27 @@ public class TransactionServiceImplTest {
 
     @Test
     public void totalBalanceShouldNotChange() throws InterruptedException {
-        Double balanceBefore = 0d;
-        int nAccounts = 10000;
+        BigDecimal balanceBefore = ZERO;
+        int nAccounts = 100000;
         int nThreads = 100;
 
         long start = System.currentTimeMillis();
 
         for (int i = 0; i < nAccounts; i++) {
-            Account account = accountService.create(new Account(1.0, "acc" + i));
-            balanceBefore += account.balance;
+            Account account = accountService.create(new Account(ONE, "acc" + i));
+            balanceBefore = balanceBefore.add(account.balance);
         }
 
         test(nAccounts, new MultithreadedStressTester(nThreads));
 
-        Double balanceAfter = accountService.accounts()
+        BigDecimal balanceAfter = accountService.accounts()
                 .stream()
                 .map(acc -> acc.balance)
-                .mapToDouble(Double::doubleValue)
-                .sum();
+                .reduce(ZERO, BigDecimal::add);
 
         long finish = System.currentTimeMillis();
         System.out.println("time: " + (finish - start));
-        assertThat(balanceAfter).isEqualTo(balanceBefore);
+        assertThat(balanceAfter.compareTo(balanceBefore)).isEqualTo(0);
     }
 
     private void test(int nAccounts, MultithreadedStressTester stressTester) throws InterruptedException {
@@ -63,7 +67,7 @@ public class TransactionServiceImplTest {
             Transaction tx = new Transaction();
             tx.fromAccountId = randomFromId;
             tx.toAccountId = toId;
-            tx.amount = 1d;
+            tx.amount = ONE;
 
             try {
                 transactionService.transfer(tx);
