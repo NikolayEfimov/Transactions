@@ -42,7 +42,7 @@ public class Account {
         Account account = (Account) o;
 
         if (!id.equals(account.id)) return false;
-        if (!balance.equals(account.balance)) return false;
+        if (balance.compareTo(account.balance) != 0) return false;
         return name.equals(account.name);
     }
 

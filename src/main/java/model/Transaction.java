@@ -28,7 +28,7 @@ public class Transaction implements Serializable {
         if (!id.equals(that.id)) return false;
         if (!fromAccountId.equals(that.fromAccountId)) return false;
         if (!toAccountId.equals(that.toAccountId)) return false;
-        if (!amount.equals(that.amount)) return false;
+        if (amount.compareTo(that.amount) != 0) return false;
         return state.equals(that.state);
     }
 
