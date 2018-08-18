@@ -34,7 +34,6 @@ public class MultithreadedStressTester {
         return finished;
     }
 
-
     public void shutdown() {
         executor.shutdown();
     }

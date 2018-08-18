@@ -22,5 +22,4 @@ public class TransactionDao extends BaseDao {
         em.close();
         return transactions;
     }
-
 }

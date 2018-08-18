@@ -1,6 +1,5 @@
 package services;
 
-import dao.AccountDao;
 import dao.TransactionDao;
 import model.Account;
 import model.Transaction;
@@ -12,32 +11,31 @@ import java.util.List;
 @Singleton
 public class TransactionServiceImpl implements TransactionService {
 
-    @Inject
-    private AccountService accountService;
-    @Inject
-    private TransactionDao transactionDao;
-    @Inject
-    private AccountDao accountDao;
+    @Inject AccountService accountService;
+    @Inject private TransactionDao transactionDao;
 
     @Override
-    public synchronized boolean transfer(Transaction transaction) {
+    public synchronized void transfer(Transaction tx) {
         try {
-            transactionDao.create(transaction);
+            transactionDao.create(tx);
 
-            Account from = accountService.accountById(transaction.fromAccountId);
-            Account to = accountService.accountById(transaction.toAccountId);
+            Account from = accountService.accountById(tx.fromAccountId);
+            if (from.balance.compareTo(tx.amount) > -1) {
+                Account to = accountService.accountById(tx.toAccountId);
+                from.balance = from.balance.subtract(tx.amount);
+                to.balance  = to.balance.add(tx.amount);
+                accountService.update(from);
+                accountService.update(to);
+                tx.state = "DONE";
+            }
+            else {
+                tx.state = "CANCELED";
+            }
+            transactionDao.update(tx);
 
-            from.balance =  from.balance.subtract(transaction.amount);
-            to.balance  = to.balance.add(transaction.amount);
-
-            accountDao.update(from);
-            accountDao.update(to);
-            transaction.state = "DONE";
-            transactionDao.update(transaction);
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
         }
-        return true;
     }
 
     @Override

@@ -7,119 +7,54 @@ import model.Account;
 import model.Transaction;
 import org.junit.Before;
 import org.junit.Test;
-import util.MultithreadedStressTester;
 
 import java.math.BigDecimal;
 
-import static java.math.BigDecimal.ONE;
-import static java.math.BigDecimal.ZERO;
-import static java.util.concurrent.ThreadLocalRandom.current;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 
 public class TransactionServiceImplTest {
 
-    private TransactionService transactionService;
-    private AccountService accountService;
+    private TransactionServiceImpl transactionService;
 
     private static Injector injector = Guice.createInjector(new BasicModule());
 
     @Before
     public void init() {
-        accountService = injector.getInstance(AccountService.class);
-        transactionService = injector.getInstance(TransactionService.class);
+        transactionService = injector.getInstance(TransactionServiceImpl.class);
+        transactionService.accountService = mock(AccountService.class);
     }
 
     @Test
-    public void totalBalanceShouldNotChange() throws InterruptedException {
-        int nAccounts = 100000;
-        int nTransfers = 100;
+    public void transactionStatusShouldBeCanceledWhenRemitterHaveNotEnoughMoney() {
+        Transaction tx = new Transaction();
+        tx.fromAccountId = 1L;
+        tx.toAccountId = 2L;
+        tx.amount = new BigDecimal(10);
+        Account account = new Account(new BigDecimal(5), "myAcc");
+        doReturn(account).when(transactionService.accountService).accountById(1L);
 
-        createNAccounts(nAccounts);
-        BigDecimal balanceBefore = totalBalanceOfAllAccounts();
+        transactionService.transfer(tx);
 
-        makeRandomTransactionsBetweenAccounts(nAccounts, nTransfers);
-
-        BigDecimal balanceAfter = totalBalanceOfAllAccounts();
-
-        assertThat(balanceAfter.compareTo(balanceBefore)).isEqualTo(0);
+        assertThat(transactionService.transactionById(tx.id).state).isEqualTo("CANCELED");
     }
 
     @Test
-    public void totalBalanceAfterBiDirectionalTransfersBetweenShouldNotChange() throws InterruptedException {
-        int nAccounts = 2;
-        int nTransfers = 100;
+    public void transactionStatusShouldBeDoneWhenTransactionSucceed() {
+        Transaction tx = new Transaction();
+        tx.fromAccountId = 1L;
+        tx.toAccountId = 2L;
+        tx.amount = new BigDecimal(10);
+        Account remitter = new Account(new BigDecimal(15), "myAcc");
+        Account beneficiary = new Account(new BigDecimal(10), "anotherAcc");
 
-        createNAccounts(nAccounts);
-        BigDecimal balanceBefore = totalBalanceOfAllAccounts();
+        doReturn(remitter).when(transactionService.accountService).accountById(tx.fromAccountId);
+        doReturn(beneficiary).when(transactionService.accountService).accountById(tx.toAccountId);
 
-        makeRandomTransactionsBetweenTwoAccounts(1, 2, ONE, nTransfers);
+        transactionService.transfer(tx);
 
-        BigDecimal balanceAfter = totalBalanceOfAllAccounts();
-
-        assertThat(balanceAfter.compareTo(balanceBefore)).isEqualTo(0);
+        assertThat(transactionService.transactionById(tx.id).state).isEqualTo("DONE");
     }
 
-    private void createNAccounts(int nAccounts) {
-        for (int i = 0; i < nAccounts; i++) {
-            accountService.create(new Account(ONE, "account_" + i));
-        }
-    }
-
-    private BigDecimal totalBalanceOfAllAccounts() {
-        return accountService.accounts()
-                .stream()
-                .map(acc -> acc.balance)
-                .reduce(ZERO, BigDecimal::add);
-    }
-
-    private void makeRandomTransactionsBetweenAccounts(int nAccounts, int nTransactions) throws InterruptedException {
-
-        MultithreadedStressTester stressTester = new MultithreadedStressTester(nTransactions);
-        stressTester.stress(() -> {
-            long randomFromId = current().nextLong(1, nAccounts + 1);
-            long randomToId = current().nextLong(1, nAccounts + 1);
-            long toId = randomToId == randomFromId
-                    ? randomToId > 1 ? randomToId - 1 : randomToId + 1
-                    : randomToId;
-
-            Transaction tx = new Transaction();
-            tx.fromAccountId = randomFromId;
-            tx.toAccountId = toId;
-            tx.amount = ONE;
-
-            try {
-                transactionService.transfer(tx);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-        stressTester.shutdown();
-    }
-
-    private void makeRandomTransactionsBetweenTwoAccounts(long first, long second, BigDecimal amount, int nTransactions) throws InterruptedException {
-
-        MultithreadedStressTester stressTester = new MultithreadedStressTester(nTransactions);
-
-        stressTester.stress(() -> {
-            Transaction tx = new Transaction();
-
-            if (current().nextBoolean()) {
-                tx.fromAccountId = first;
-                tx.toAccountId = second;
-            }
-            else {
-                tx.fromAccountId = second;
-                tx.toAccountId = first;
-            }
-
-            tx.amount = amount;
-
-            try {
-                transactionService.transfer(tx);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-        stressTester.shutdown();
-    }
 }

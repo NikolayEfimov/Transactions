@@ -27,4 +27,14 @@ public class AccountServiceImpl implements AccountService {
         return (Account) accountDao.create(account);
     }
 
+    @Override
+    public void update(Account account) {
+        accountDao.update(account);
+    }
+
+    @Override
+    public void deleteAll() {
+        accountDao.deleteAll();
+    }
+
 }

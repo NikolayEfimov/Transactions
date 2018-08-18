@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface TransactionService {
 
-    boolean transfer(Transaction transaction);
+    void transfer(Transaction tx);
 
     List<Transaction> transactions();
 

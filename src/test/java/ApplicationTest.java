@@ -68,8 +68,6 @@ public class ApplicationTest {
         assertThat(response.status).isEqualTo(200);
     }
 
-
-
     @Test
     public void createTransaction() {
         UrlResponse response = createAccountViaPOST();

@@ -5,20 +5,16 @@ import model.Account;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
-import javax.persistence.Query;
 import java.math.BigDecimal;
 
 public class Database {
 
     private static EntityManagerFactory factory;
     private static final String IN_MEMORY = "h2";
-    private static final String TEST_MODE = "h2-test";
 
     public static void init() {
         try {
-
             initAccounts();
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -27,9 +23,6 @@ public class Database {
     private static void initAccounts() {
         EntityManager em = createEntityManager();
         em.getTransaction().begin();
-
-        Query query = em.createQuery("SELECT a from Account a");
-        System.out.println(query.getResultList().size());
 
         Account account = new Account();
         account.balance = new BigDecimal(100);
@@ -42,17 +35,7 @@ public class Database {
         em.persist(account);
         em.persist(account2);
         em.getTransaction().commit();
-
-        System.out.println(query.getResultList().size());
-        for (Object o : query.getResultList()) {
-            Account acc = (Account)o;
-            System.out.println(acc.balance);
-        }
-
         em.close();
-
-        System.out.println(em.isOpen());
-
     }
 
     public static EntityManager createEntityManager() {

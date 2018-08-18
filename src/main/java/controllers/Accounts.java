@@ -32,6 +32,5 @@ public class Accounts {
 
         account = accountService.create(account);
         return gson.toJson(account);
-
     }
 }
