@@ -4,8 +4,9 @@ import model.Account;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import java.math.BigDecimal;
+
+import static javax.persistence.Persistence.createEntityManagerFactory;
 
 public class Database {
 
@@ -39,7 +40,7 @@ public class Database {
     }
 
     public static EntityManager createEntityManager() {
-        if (factory == null) factory = Persistence.createEntityManagerFactory(IN_MEMORY);
+        if (factory == null) factory = createEntityManagerFactory(IN_MEMORY);
         return factory.createEntityManager();
     }
 }

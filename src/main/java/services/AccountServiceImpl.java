@@ -1,6 +1,7 @@
 package services;
 
 import dao.AccountDao;
+import exceptions.AccountNotFoundException;
 import model.Account;
 
 import javax.inject.Inject;
@@ -19,7 +20,9 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public Account accountById(Long id) {
-        return accountDao.accountById(id);
+        Account account = accountDao.accountById(id);
+        if (account == null) throw new AccountNotFoundException("Account with id = " + id + " not found");
+        return account;
     }
 
     @Override

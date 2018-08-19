@@ -2,16 +2,16 @@ package services;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import exceptions.AccountNotFoundException;
 import guice.BasicModule;
 import model.Account;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.math.BigDecimal;
-
 import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class AccountServiceImplTest {
 
@@ -25,9 +25,9 @@ public class AccountServiceImplTest {
     }
 
     @Test
-    public void findAccountWithUnknownId() {
-        createNAccounts(3);
-        assertThat(accountService.accountById(100L)).isNull();
+    public void throwExceptionWhenAccountNotFound() {
+        accountService.deleteAll();
+        assertThatExceptionOfType(AccountNotFoundException.class).isThrownBy(() -> accountService.accountById(100L));
     }
 
     @Test

@@ -2,6 +2,7 @@ package services;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import exceptions.AccountNotFoundException;
 import guice.BasicModule;
 import model.Account;
 import model.Transaction;
@@ -13,8 +14,7 @@ import java.math.BigDecimal;
 import static model.Transaction.Status.CANCELED;
 import static model.Transaction.Status.DONE;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 
 public class TransactionServiceImplTest {
 
@@ -43,6 +43,19 @@ public class TransactionServiceImplTest {
     }
 
     @Test
+    public void transactionStatusShouldBeCanceledWhenAccountNotFound() {
+        Transaction tx = new Transaction();
+        tx.fromAccountId = 1L;
+        tx.toAccountId = 2L;
+        doThrow(AccountNotFoundException.class).when(transactionService.accountService).accountById(1L);
+
+        transactionService.transfer(tx);
+
+        assertThat(transactionService.transactionById(tx.id).status).isEqualTo(CANCELED);
+        verify(transactionService.accountService, never()).accountById(2L);
+    }
+
+    @Test
     public void transactionStatusShouldBeDoneWhenTransactionSucceed() {
         Transaction tx = new Transaction();
         tx.fromAccountId = 1L;
@@ -58,5 +71,4 @@ public class TransactionServiceImplTest {
 
         assertThat(transactionService.transactionById(tx.id).status).isEqualTo(DONE);
     }
-
 }

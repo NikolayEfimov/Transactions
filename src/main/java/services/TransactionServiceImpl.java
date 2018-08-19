@@ -23,6 +23,7 @@ public class TransactionServiceImpl implements TransactionService {
             transactionDao.create(tx);
 
             Account from = accountService.accountById(tx.fromAccountId);
+
             if (from.balance.compareTo(tx.amount) > -1) {
                 Account to = accountService.accountById(tx.toAccountId);
                 from.balance = from.balance.subtract(tx.amount);
@@ -31,13 +32,14 @@ public class TransactionServiceImpl implements TransactionService {
                 accountService.update(to);
                 tx.status = DONE;
             }
-            else {
-                tx.status = CANCELED;
-            }
+            else tx.status = CANCELED;
+
             transactionDao.update(tx);
 
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
+            tx.status = CANCELED;
+            transactionDao.update(tx);
         }
     }
 
