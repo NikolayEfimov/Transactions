@@ -15,7 +15,7 @@ public class Transaction implements Serializable {
     public Long fromAccountId;
     public Long toAccountId;
     public BigDecimal amount;
-    public String state;
+    public Status status;
 
     @Override
     public boolean equals(Object o) {
@@ -28,7 +28,7 @@ public class Transaction implements Serializable {
         if (!fromAccountId.equals(that.fromAccountId)) return false;
         if (!toAccountId.equals(that.toAccountId)) return false;
         if (amount.compareTo(that.amount) != 0) return false;
-        return state.equals(that.state);
+        return status.equals(that.status);
     }
 
     @Override
@@ -37,7 +37,13 @@ public class Transaction implements Serializable {
         result = 31 * result + fromAccountId.hashCode();
         result = 31 * result + toAccountId.hashCode();
         result = 31 * result + amount.hashCode();
-        result = 31 * result + state.hashCode();
+        result = 31 * result + status.hashCode();
         return result;
+    }
+
+    public enum Status {
+        DONE,
+        CANCELED,
+        PENDING
     }
 }

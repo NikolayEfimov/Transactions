@@ -8,6 +8,9 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.List;
 
+import static model.Transaction.Status.CANCELED;
+import static model.Transaction.Status.DONE;
+
 @Singleton
 public class TransactionServiceImpl implements TransactionService {
 
@@ -26,10 +29,10 @@ public class TransactionServiceImpl implements TransactionService {
                 to.balance  = to.balance.add(tx.amount);
                 accountService.update(from);
                 accountService.update(to);
-                tx.state = "DONE";
+                tx.status = DONE;
             }
             else {
-                tx.state = "CANCELED";
+                tx.status = CANCELED;
             }
             transactionDao.update(tx);
 

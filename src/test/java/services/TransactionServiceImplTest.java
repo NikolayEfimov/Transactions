@@ -10,6 +10,8 @@ import org.junit.Test;
 
 import java.math.BigDecimal;
 
+import static model.Transaction.Status.CANCELED;
+import static model.Transaction.Status.DONE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -37,7 +39,7 @@ public class TransactionServiceImplTest {
 
         transactionService.transfer(tx);
 
-        assertThat(transactionService.transactionById(tx.id).state).isEqualTo("CANCELED");
+        assertThat(transactionService.transactionById(tx.id).status).isEqualTo(CANCELED);
     }
 
     @Test
@@ -54,7 +56,7 @@ public class TransactionServiceImplTest {
 
         transactionService.transfer(tx);
 
-        assertThat(transactionService.transactionById(tx.id).state).isEqualTo("DONE");
+        assertThat(transactionService.transactionById(tx.id).status).isEqualTo(DONE);
     }
 
 }

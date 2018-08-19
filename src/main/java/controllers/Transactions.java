@@ -9,6 +9,8 @@ import spark.Response;
 import javax.inject.Inject;
 import java.util.List;
 
+import static model.Transaction.Status.PENDING;
+
 public class Transactions {
 
     @Inject private TransactionService transactionService;
@@ -16,7 +18,7 @@ public class Transactions {
     public String transfer(Request rq, Response rs) {
         Gson gson = new Gson();
         Transaction transaction = gson.fromJson(rq.body(), Transaction.class);
-        transaction.state = "PENDING";
+        transaction.status = PENDING;
         transactionService.transfer(transaction);
         return new Gson().toJson(transaction);
     }
